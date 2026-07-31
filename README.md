@@ -285,6 +285,65 @@ Given a change number (e.g. `56947`), the API returns the latest patchset ref
 Merged or abandoned changes are detected and skipped. Conflicts abort the
 cherry-pick automatically and report the failure.
 
+## Sharing one TYPO3 Core checkout across multiple tryouts (git worktree)
+
+By default every tryout instance clones its own copy of TYPO3 Core into
+`typo3-core/` (which is gitignored). When you run several tryouts at once —
+for example to test two Gerrit patches side by side — that means several full
+Core clones and several separate fetches.
+
+Because the `post-start` hook only clones Core when `typo3-core/` does not yet
+exist, you can pre-seed `typo3-core/` as a **git worktree** of a single, shared
+Core clone. All instances then share one `.git` object store: one place to
+fetch, far less disk, and instant switching between versions.
+
+### One-time: create the shared Core clone
+
+```bash
+# Clone TYPO3 Core once, somewhere central
+git clone https://github.com/typo3/typo3.git ~/typo3-core-shared
+cd ~/typo3-core-shared
+# optional: add the Gerrit remote so patches can be fetched
+git remote add gerrit ssh://<username>@review.typo3.org:29418/Packages/TYPO3.CMS.git
+```
+
+### Per tryout: attach Core as a worktree instead of cloning
+
+```bash
+# run inside each tryout folder, BEFORE `ddev start`
+cd /path/to/tryout
+git -C ~/typo3-core-shared worktree add --detach "$PWD/typo3-core" main
+ddev start   # post-start sees typo3-core/ already exists and skips the clone
+```
+
+Use `--detach` so several tryouts can be based on the **same** branch tip:
+git worktree refuses to check out one branch in two worktrees, but detached
+HEADs pointing at the same commit are fine. Each instance can then cherry-pick
+a different Gerrit change on top:
+
+```bash
+cd /path/to/tryout      && ddev tryout patch 56947
+cd /path/to/tryout-wip  && ddev tryout patch 57001
+```
+
+### Cleaning up
+
+```bash
+git -C ~/typo3-core-shared worktree remove /path/to/tryout/typo3-core
+git -C ~/typo3-core-shared worktree prune
+```
+
+### Notes / trade-offs
+
+- All worktrees share one object store, so a `git gc` or fetch in one instance
+  affects all of them — avoid heavy git maintenance in two instances at once.
+- Composer path repositories still point at each instance's own
+  `typo3-core/typo3/sysext/*`, so symlinks and autoloading behave exactly as
+  before.
+- This is complementary to `git worktree add ../tryout-wip` for the *scaffold*
+  itself: that shares the tryout project, while this shares the Core codebase
+  underneath it.
+
 ## Requirements
 
 - [DDEV](https://ddev.readthedocs.io/en/stable/) v1.24+
