@@ -216,12 +216,13 @@ ddev start
 ```text
 tryout/
 ├── .ddev/
-│   ├── commands/web/
-│   │   ├── tryout                # The ddev tryout command
-│   │   └── cs                    # Contribution-setup command (ddev cs)
+│   ├── commands/host/
+│   │   ├── tryout                # The ddev tryout command (runs on the host)
+│   │   └── cs                    # Contribution-setup command (ddev cs, runs on the host)
 │   ├── scripts/
 │   │   ├── functions.sh          # Shared helpers (Gerrit API, patching, hooks)
 │   │   ├── post-start.sh         # Runs on ddev start (clone, patch, setup)
+│   │   ├── resolve-patch-ref.sh  # Fetches + parses a Gerrit change (runs in-container)
 │   │   └── sync-composer.php     # Regenerates composer.json from sysexts
 │   ├── templates/
 │   │   └── gitmessage.txt        # Commit-message template installed by `ddev cs`
@@ -266,7 +267,9 @@ into `vendor/` and behave as if they were installed from Packagist.
 
 ### Post-Start Hook
 
-On every `ddev start` the post-start script runs inside the web container:
+On every `ddev start` the post-start script runs on the host (it shells out
+to `ddev composer`/`ddev exec`/`ddev typo3` for anything that needs to happen
+inside the container):
 
 1. **Clone** — if `typo3-core/` does not exist, clones from GitHub and adds a
    Gerrit remote.
@@ -349,6 +352,10 @@ git -C ~/typo3-core-shared worktree prune
 - [DDEV](https://ddev.readthedocs.io/en/stable/) v1.24+
 - Docker Desktop or Colima
 - Git
+- A `bash` shell on the host — the `ddev tryout`/`ddev cs` commands and the
+  post-start hook run on the host rather than inside the container. On
+  Windows this means Git Bash (bundled with Git for Windows); DDEV finds it
+  automatically. An SSH client is also needed for `ddev cs` to reach Gerrit.
 
 ## Contributing
 
