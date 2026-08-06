@@ -14,7 +14,7 @@ echo "════════════════════════�
 echo ""
 
 # --- Step 1: Clone TYPO3 Core if not present ---
-if [ ! -d "${CORE_DIR}/.git" ]; then
+if [ ! -d "${CORE_DIR}/.git" ] && [ ! -f "${CORE_DIR}/.git" ]; then
     info "[1/5] Cloning TYPO3 Core repository..."
     info "This may take a few minutes on first run."
     if ! git clone --branch "${BRANCH}" "${CORE_REPO}" "${CORE_DIR}"; then
