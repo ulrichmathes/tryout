@@ -24,7 +24,7 @@ cmd_status() {
     echo "─────────────────────────────────────"
 
     # Core repository
-    if [ ! -d "${CORE_DIR}/.git" ]; then
+    if [ ! -d "${CORE_DIR}/.git" ] && [ ! -f "${CORE_DIR}/.git" ]; then
         echo -e "  Core:      ${FAIL} not cloned"
         echo -e "             ${DIM}→ ddev tryout download${NC}"
         echo "─────────────────────────────────────"
