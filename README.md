@@ -42,7 +42,7 @@ Everything is accessed through a single `ddev tryout` entry point:
 ddev tryout status              Show project overview
 ddev tryout download            Clone or update TYPO3 Core
 ddev tryout download --reset    Hard reset Core to current branch
-ddev tryout checkout <branch>   Switch TYPO3 version (main, 13.4, 12.4, ...)
+ddev tryout checkout <branch>   Switch TYPO3 version (main, 14.3, 13.4, 12.4, ...)
 ddev tryout composer            Regenerate composer.json from Core sysexts
 ddev tryout patch <change-id>   Apply a Gerrit patch
 ddev tryout patch               Apply all patches from config
@@ -137,11 +137,15 @@ are cherry-picked in order.
 
 ## Switching TYPO3 Versions
 
+Important
+
+TYPO3 uses a `main`-based commit workflow. Usually only mergers commit to a non-main branch only. Even if your fix targets an earlier version, please provide patches against `main`.
+
 By default tryout clones the `main` branch (latest development). To work
 against a different major version:
 
 ```bash
-ddev tryout checkout 13.4
+ddev tryout checkout 14.3
 ```
 
 This single command switches the Core branch, regenerates `composer.json`,
@@ -162,7 +166,7 @@ To pin the branch via environment variable (e.g. in `.ddev/config.local.yaml`):
 
 ```yaml
 web_environment:
-  - TRYOUT_BRANCH=13.4
+  - TRYOUT_BRANCH=14.3
 ```
 
 ## Custom Extensions
